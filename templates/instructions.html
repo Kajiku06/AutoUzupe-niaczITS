@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instrukcja - AutoUzupełniacz 5000</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #181818;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .instr-container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #232323;
+      border-radius: 12px;
+      box-shadow: 0 0 32px #000;
+      padding: 32px 24px 24px 24px;
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    h1, h2 { margin-top: 0; }
+    code, .kbd {
+      background: #444;
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    details { margin-bottom: 10px; }
+    ol { margin-left: 20px; }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      color: #90ee90;
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+    .back-link:hover { text-decoration: underline; }
+    hr { border: 1px solid #333; }
+    .comb-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .comb-table th, .comb-table td { border: 1px solid #333; padding: 6px 10px; }
+    .comb-table th { background: #292929; }
+    .comb-table td { background: #222; }
+  </style>
+</head>
+<body>
+  <div class="instr-container">
+    <h1>Instrukcja</h1>
+    <p>
+      <b>AutoUzupełniacz 5000</b> to narzędzie do automatycznego wypełniania szablonów dokumentów na podstawie wklejonych danych. Wybierz odpowiednie opcje, wklej dane w polu tekstowym, załaduj szablon(y) Word (.docx) i kliknij <b>Uzupełnij plik</b>. Otrzymasz gotowy plik do pobrania.
+    </p>
+    <ul>
+      <li>
+        <b>Typ operacji:</b>
+        <span class="kbd">Rejestracja</span> – rejestracja nowej jednostki<br>
+        <span class="kbd">Zmiana właściciela</span> – zmiana właściciela istniejącej jednostki
+      </li>
+      <li>
+        <b>Ilość osób objętych:</b>
+        <span class="kbd">1</span>, <span class="kbd">2</span>, <span class="kbd">3</span> – liczba osób, których dotyczą dane
+      </li>
+      <li>
+        <b>Dane firmy:</b>
+        <span class="kbd">&#10003; zaznaczone</span> – właściciel/armator to firma<br>
+        <span class="kbd">&#10007; odznaczone</span> – właściciel/armator to osoba fizyczna
+      </li>
+      <li>
+        <b>Drugi silnik:</b>
+        <span class="kbd">&#10003; zaznaczone</span> – pojawią się dodatkowe pola na drugi silnik
+      </li>
+      <li>
+        <b>Tylko parsuj dane (bez pliku):</b>
+        Zaznacz, jeśli chcesz tylko sprawdzić poprawność i strukturę danych bez generowania pliku.
+      </li>
+      <li>
+        <b>Plik szablonu:</b>
+        Wgraj jeden lub dwa pliki szablonów Word (.docx), które zostaną automatycznie uzupełnione danymi.
+      </li>
+      <li>
+        <b>Wklej dane:</b>
+        Wklej dane w polu tekstowym w odpowiedniej kolejności (zgodnie z wybraną kombinacją opcji). Każda linia odpowiada kolejnemu polu.
+      </li>
+    </ul>
+    <hr>
+    <h2>Kombinacje i skróty</h2>
+    <table class="comb-table">
+      <tr>
+        <th>Typ operacji</th>
+        <th>Ilość osób</th>
+        <th>Firma</th>
+        <th>Drugi silnik</th>
+        <th>Skrót/tablica</th>
+      </tr>
+      <tr><td>Rejestracja</td><td>1</td><td>Nie</td><td>Nie</td><td><code>REJ_1</code></td></tr>
+      <tr><td>Rejestracja</td><td>1</td><td>Nie</td><td>Tak</td><td><code>REJ_1_2ENG</code></td></tr>
+      <tr><td>Rejestracja</td><td>1</td><td>Tak</td><td>Nie</td><td><code>REJ_1_FIRMA</code></td></tr>
+      <tr><td>Rejestracja</td><td>1</td><td>Tak</td><td>Tak</td><td><code>REJ_1_FIRMA_2ENG</code></td></tr>
+      <tr><td>Zmiana właściciela</td><td>1</td><td>Nie</td><td>Nie</td><td><code>ZMIANA_1</code></td></tr>
+      <tr><td>Zmiana właściciela</td><td>1</td><td>Nie</td><td>Tak</td><td><code>ZMIANA_1_2ENG</code></td></tr>
+      <tr><td>Zmiana właściciela</td><td>1</td><td>Tak</td><td>Nie</td><td><code>ZMIANA_1_FIRMA</code></td></tr>
+      <tr><td>Zmiana właściciela</td><td>1</td><td>Tak</td><td>Tak</td><td><code>ZMIANA_1_FIRMA_2ENG</code></td></tr>
+      <tr><td colspan="5" style="text-align:center;">... analogicznie dla 2 i 3 osób ...</td></tr>
+    </table>
+    <p>
+      <b>Wklej dane w odpowiednim formacie zgodnie z wybraną kombinacją.<br>
+      Pola <code>todayData</code> uzupełniane są automatycznie.</b>
+    </p>
+    <hr>
+    <h2>Kolejność pól (KEYS) dla wybranych opcji</h2>
+    <p>
+      Każda kombinacja opcji odpowiada konkretnej tablicy KEYS. Wklej dane w takiej kolejności, w jakiej są wymienione poniżej dla wybranej opcji. Każda linia to kolejne pole.
+    </p>
+    <details>
+      <summary><b>REJ_1 (Rejestracja, 1 osoba, bez firmy, bez drugiego silnika)</b></summary>
+      <ol>
+        <li>boatName</li>
+        <li>polandPort</li>
+        <li>usetype</li>
+        <li>shipyard</li>
+        <li>boatType</li>
+        <li>year</li>
+        <li>mark</li>
+        <li>model</li>
+        <li>length</li>
+        <li>width</li>
+        <li>draft</li>
+        <li>material</li>
+        <li>peopleNumber</li>
+        <li>declarationCE</li>
+        <li>hulls</li>
+        <li>category</li>
+        <li>u0</li>
+        <li>HINNumber</li>
+        <li>u1</li>
+        <li>engineMark</li>
+        <li>u2</li>
+        <li>serialNumber</li>
+        <li>fuel</li>
+        <li>engineType</li>
+        <li>potential</li>
+        <li>u3</li>
+        <li>u4</li>
+        <li>country</li>
+        <li>u5</li>
+        <li>names</li>
+        <li>surnames</li>
+        <li>birthDate</li>
+        <li>birthPlace</li>
+        <li>adress</li>
+        <li>postalNumber</li>
+        <li>city</li>
+        <li>country2</li>
+        <li>ID</li>
+        <li>u6</li>
+        <li>u7</li>
+        <li>email</li>
+        <li>1</li>
+        <li>u8</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+      </ol>
+    </details>
+    <details>
+      <summary><b>REJ_1_2ENG (Rejestracja, 1 osoba, bez firmy, z drugim silnikiem)</b></summary>
+      <ol>
+        <!-- ...jak wyżej... -->
+        <li>engine2Mark</li>
+        <li>engine2SerialNumber</li>
+        <li>engine2Power</li>
+        <li>engine2Type</li>
+      </ol>
+    </details>
+    <!-- Analogicznie dla pozostałych kombinacji -->
+    <div style="color:#aaa; font-size:0.95em;">
+      <i>W przypadku 2 lub 3 osób/firma/drugi silnik – skontaktuj się z administratorem lub sprawdź dokumentację.</i>
+    </div>
+    <hr>
+    <h2>Panel administracyjny</h2>
+    <p>
+      W lewym górnym rogu strony znajduje się ikona zębatki (<b>&#9881;</b>). Po kliknięciu otwiera się panel administracyjny w nowym widoku. Panel umożliwia:
+      <ul>
+        <li>Podgląd wszystkich tablic KEYS używanych w aplikacji</li>
+        <li>Edytowanie zawartości dowolnej tablicy KEYS (każdy element oddziel przecinkiem)</li>
+        <li>Natychmiastowe zapisanie zmian – są one od razu wykorzystywane przez aplikację</li>
+      </ul>
+      Panel jest dostępny tylko dla uprawnionych użytkowników.
+    </p>
+    <a class="back-link" href="{{ url_for('index') }}">&#8592; Powrót do formularza</a>
+  </div>
+</body>
+</html>

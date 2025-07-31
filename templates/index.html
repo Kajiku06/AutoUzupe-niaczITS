@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoUzupełniacz 5000</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(120deg, #0f0f0f, #1e1e1e, #2c2c2c);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #eee;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 32px 16px 16px 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    header .copyright {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    form {
+      background-color: rgba(40, 40, 40, 0.93);
+      padding: 32px 28px 24px 28px;
+      border-radius: 14px;
+      box-shadow: 0 0 24px rgba(0,0,0,0.7);
+      margin-bottom: 32px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 12px;
+      border-radius: 7px;
+      font-size: 1.08rem;
+      resize: vertical;
+      background-color: #191919;
+      color: #eee;
+      border: 1.5px solid #444;
+      margin-bottom: 10px;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      border: 1.5px solid #2196f3;
+      outline: none;
+    }
+    input[type="file"] {
+      color: #eee;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 1em;
+      background: none;
+      border: none;
+    }
+    input[type="file"]::-webkit-file-upload-button {
+      background: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 7px 16px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+    input[type="file"]::-webkit-file-upload-button:hover {
+      background: #1565c0;
+    }
+    button, .btn {
+      margin-top: 18px;
+      padding: 11px 22px;
+      background-color: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      font-size: 1.08rem;
+      font-weight: 500;
+      box-shadow: 0 2px 8px #0004;
+      letter-spacing: 0.5px;
+    }
+    button:hover, .btn:hover {
+      background-color: #1565c0;
+      box-shadow: 0 4px 16px #2196f366;
+    }
+    .flex-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .flex-row button {
+      flex: 1;
+      min-width: 150px;
+      margin-top: 0;
+    }
+    .file-label {
+      font-weight: 500;
+      color: #90caf9;
+      margin-top: 10px;
+      display: block;
+    }
+    .file-inputs {
+      margin-bottom: 18px;
+    }
+    .menu-options {
+      margin-top: 10px;
+      margin-bottom: 18px;
+      padding: 14px 10px 10px 10px;
+      background: #232323;
+      border-radius: 8px;
+      box-shadow: 0 1px 8px #0003;
+    }
+    .menu-options label {
+      margin-right: 18px;
+      font-size: 1.04em;
+      font-weight: 400;
+      color: #b3e5fc;
+    }
+    .menu-options input[type="radio"], .menu-options input[type="checkbox"] {
+      accent-color: #2196f3;
+      margin-right: 4px;
+    }
+    .menu-options .section-title {
+      color: #fff;
+      font-weight: 600;
+      margin-bottom: 3px;
+      display: block;
+    }
+    .checkbox-row {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .info-row {
+      color: #aaa;
+      font-size: 0.98em;
+      margin-bottom: 10px;
+    }
+    .error-msg {
+      color: #ff6666;
+      font-weight: bold;
+      margin-bottom: 18px;
+      font-size: 1.08em;
+      text-align: center;
+    }
+    .success-msg {
+      color: #90ee90;
+      font-weight: bold;
+      margin-bottom: 18px;
+      font-size: 1.08em;
+      text-align: center;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 40px;
+      margin-bottom: 10px;
+    }
+    footer a {
+      color: #90caf9;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    /* Ikony w prawym górnym rogu */
+    .corner-icon {
+      position: fixed;
+      top: 24px;
+      z-index: 10000;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.7em;
+      box-shadow: 0 2px 8px #0006;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    .corner-icon.info {
+      right: 32px;
+      background: #2196f3;
+      color: #fff;
+    }
+    .corner-icon.football {
+      right: 84px;
+      background: #43a047;
+      color: #fff;
+    }
+    .corner-icon.admin {
+      left: 32px;
+      top: 24px;
+      right: auto;
+      background: #ff9800;
+      color: #fff;
+    }
+    /* Overlay ładowania */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      z-index: 99998;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(20,30,20,0.85);
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s;
+    }
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .spinner-circle {
+      width: 54px;
+      height: 54px;
+      border: 6px solid #fff;
+      border-top: 6px solid #43a047;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    .loading-dots {
+      font-size: 1.5em;
+      color: #fff;
+      letter-spacing: 0.2em;
+      font-family: monospace;
+    }
+    /* Animacja przesyłania pliku */
+    .upload-progress-bar {
+      width: 100%;
+      background: #222;
+      border-radius: 6px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      height: 18px;
+      overflow: hidden;
+      display: none;
+    }
+    .upload-progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #2196f3, #43a047);
+      width: 0%;
+      transition: width 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <!-- Overlay ładowania -->
+  <div id="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner-circle"></div>
+      <div class="loading-dots" id="dotsAnim">. . .</div>
+      <div style="color:#fff;opacity:0.8;font-size:1.1em;">Przetwarzanie pliku...</div>
+      <div class="upload-progress-bar" id="uploadProgressBar">
+        <div class="upload-progress-bar-inner" id="uploadProgressBarInner"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Ikonka admina w lewym górnym rogu -->
+  <a href="{{ url_for('admin_keys') }}" title="Panel admina" class="corner-icon admin" style="text-decoration:none;">&#9881;</a>
+  <!-- Ikonka instrukcji -->
+  <a href="{{ url_for('instructions') }}" title="Instrukcja" class="corner-icon info">i</a>
+  <!-- Ikonka piłki nożnej -->
+  <a href="{{ url_for('football') }}" title="Zagraj w piłkę" class="corner-icon football">&#9917;</a>
+  <div class="container">
+    <header>
+      <h1>AutoUzupełniacz 5000 &copy;</h1>
+      <div class="copyright">Powered by <a href="https://kazik.bajtownik.pl" target="_blank">Kazimierz Kiper</a></div>
+    </header>
+    <form method="post" action="/parse" enctype="multipart/form-data" id="mainForm" autocomplete="off">
+      <label><strong>Dane wejściowe:</strong></label>
+      <div class="flex-row">
+        <textarea name="data" id="dataArea" placeholder="Wklej dane..."></textarea>
+        <button type="button" onclick="pasteClipboard()">📋 Wklej ze schowka</button>
+      </div>
+      <br>
+      <label>
+        <input type="checkbox" name="noFile" id="noFileChk" onchange="toggleFiles()">
+        Tylko parsuj dane (bez pliku)
+      </label>
+      <div id="fileInputs" class="file-inputs">
+        <label class="file-label"><strong>Plik szablonu 1 (.docx):</strong></label>
+        <input type="file" name="file1" accept=".docx" id="file1"><br>
+        <label class="file-label"><strong>Plik szablonu 2 (.docx):</strong></label>
+        <input type="file" name="file2" accept=".docx" id="file2"><br>
+      </div>
+      <div class="menu-options" id="menuOptions">
+        <span class="section-title">Typ operacji:</span>
+        <label><input type="radio" name="operationType" value="rejestracja" checked> Rejestracja</label>
+        <label><input type="radio" name="operationType" value="zmiana"> Zmiana właściciela</label>
+        <br>
+        <span class="section-title">Ilość osób objętych:</span>
+        <label><input type="radio" name="peopleCount" value="1" checked> 1</label>
+        <label><input type="radio" name="peopleCount" value="2"> 2</label>
+        <label><input type="radio" name="peopleCount" value="3"> 3</label>
+        <div class="checkbox-row">
+          <label>
+            <input type="checkbox" name="isCompany" id="isCompany">
+            Dane firmy (firma jako właściciel/armator)
+          </label>
+          <label style="margin-left:18px;">
+            <input type="checkbox" name="secondEngine" id="secondEngine">
+            Drugi silnik (w formularzu pojawią się pola na drugi silnik)
+          </label>
+        </div>
+      </div>
+      <button type="submit" id="submitBtn">Uzupełnij plik</button>
+    </form>
+    <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:10px;">
+      <div style="color:#aaa;font-size:0.98em;text-align:left;">
+        Ostatnia aktualizacja: <span id="lastUpdate"></span>
+      </div>
+    </div>
+    <footer>
+      Powered by <a href="https://kazik.bajtownik.pl" target="_blank">Kazimierz Kiper</a>
+    </footer>
+  </div>
+  <script>
+    async function pasteClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.querySelector('textarea[name="data"]').value = text;
+      } catch (err) {
+        alert("Nie udało się odczytać schowka. Upewnij się, że masz uprawnienia.");
+      }
+    }
+    // Animacja kropek ładowania
+    (function dotsAnim() {
+      const dots = document.getElementById('dotsAnim');
+      if (!dots) return;
+      let i = 0;
+      setInterval(() => {
+        dots.textContent = ". ".repeat((i++ % 3) + 1);
+      }, 350);
+    })();
+    // Overlay ładowania przy submit + animacja przesyłania pliku
+    document.addEventListener('DOMContentLoaded', function() {
+      const mainForm = document.getElementById('mainForm');
+      const overlay = document.getElementById('loading-overlay');
+      const progressBar = document.getElementById('uploadProgressBar');
+      const progressBarInner = document.getElementById('uploadProgressBarInner');
+      if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          overlay.style.display = 'flex';
+          progressBar.style.display = 'block';
+          progressBarInner.style.width = '0%';
+          // AJAX submit z animacją uploadu
+          const formData = new FormData(mainForm);
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', mainForm.action, true);
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              progressBarInner.style.width = percent + '%';
+            }
+          };
+          xhr.onload = function() {
+            overlay.style.display = 'none';
+            progressBar.style.display = 'none';
+            if (xhr.status === 200) {
+              document.open();
+              document.write(xhr.responseText);
+              document.close();
+            } else {
+              alert('Błąd podczas przetwarzania pliku!');
+            }
+          };
+          xhr.onerror = function() {
+            overlay.style.display = 'none';
+            progressBar.style.display = 'none';
+            alert('Błąd sieci podczas przesyłania pliku!');
+          };
+          setTimeout(() => { xhr.send(formData); }, 350);
+        });
+      }
+    });
+
+    // Modal instrukcji
+    const helpIcon = document.querySelector('.corner-icon.info');
+    const helpModal = document.getElementById('helpModal');
+    function closeHelp() {
+      if (helpModal) helpModal.style.display = 'none';
+    }
+    if (helpIcon && helpModal) {
+      helpIcon.addEventListener('click', function(e) {
+        e.preventDefault();
+        helpModal.style.display = 'block';
+      });
+      helpModal.addEventListener('click', function(e) {
+        if (e.target === helpModal) closeHelp();
+      });
+    }
+
+    // Pobierz datę modyfikacji pliku app.py z backendu
+    fetch('{{ url_for("last_update") }}')
+      .then(res => res.json())
+      .then(data => {
+        const el = document.getElementById('lastUpdate');
+        if (el && data.last_update) {
+          el.textContent = data.last_update;
+        }
+      });
+
+    function toggleFiles() {
+      const noFile = document.getElementById('noFileChk').checked;
+      document.getElementById('fileInputs').style.display = noFile ? 'none' : '';
+    }
+  </script>
+</body>
+</html>

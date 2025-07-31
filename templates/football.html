@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strzel gola!</title>
+  <style>
+    body {
+      background: #1b5e20;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .game-container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: #222;
+      border-radius: 16px;
+      box-shadow: 0 0 32px #000a;
+      padding: 32px 24px 24px 24px;
+      text-align: center;
+      position: relative;
+    }
+    #gameCanvas {
+      background: #388e3c;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto 16px auto;
+    }
+    .score {
+      font-size: 1.3em;
+      margin: 10px 0;
+    }
+    .save-form {
+      margin-top: 18px;
+    }
+    .save-form input[type="text"] {
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: 1px solid #888;
+      font-size: 1em;
+      margin-right: 8px;
+    }
+    .save-form button {
+      padding: 6px 16px;
+      border-radius: 5px;
+      border: none;
+      background: #43a047;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .save-form button:hover {
+      background: #2e7031;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      color: #90ee90;
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+    .back-link:hover { text-decoration: underline; }
+    /* Dodatkowe style dla herbu */
+    .herb-img {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 54px;
+      height: 54px;
+      z-index: 10;
+    }
+
+    /* Animacja startowa: błysk i gradient */
+    #startup-flash {
+      position: fixed;
+      z-index: 99999;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 50% 50%, #fff 0%, #fff 30%, #1b5e20 100%);
+      opacity: 1;
+      pointer-events: none;
+      animation: flashout 1.1s cubic-bezier(.7,0,.3,1) forwards;
+    }
+    @keyframes flashout {
+      0% { opacity: 1; }
+      60% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Overlay ładowania */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      z-index: 99998;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(20,30,20,0.85);
+      align-items: center;
+      justify-content: center;
+    }
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .spinner-circle {
+      width: 54px;
+      height: 54px;
+      border: 6px solid #fff;
+      border-top: 6px solid #43a047;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    .loading-dots {
+      font-size: 1.5em;
+      color: #fff;
+      letter-spacing: 0.2em;
+      font-family: monospace;
+      animation: dots 1.2s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0% { content: "."; }
+      33% { content: ".."; }
+      66% { content: "..."; }
+      100% { content: "."; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animacja startowa -->
+  <div id="startup-flash"></div>
+  <!-- Overlay ładowania -->
+  <div id="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner-circle"></div>
+      <div class="loading-dots" id="dotsAnim">. . .</div>
+      <div style="color:#fff;opacity:0.8;font-size:1.1em;">Przetwarzanie...</div>
+    </div>
+  </div>
+  <!-- Herb Świdniczanki w prawym górnym rogu całej strony z gradientem -->
+  <div style="
+    position:fixed;
+    top:16px;
+    right:16px;
+    width:64px;
+    height:64px;
+    z-index:10001;
+    border-radius:50%;
+    background: radial-gradient(circle, #fff 0%, #fff 60%, #1b5e20 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 2px 8px #0008;
+  ">
+    <img src="https://scontent-waw2-1.xx.fbcdn.net/v/t1.6435-9/183480487_153044293493512_7761410407587955934_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=zG-TgGkWK6oQ7kNvwHMTTDt&_nc_oc=AdlWeWVob42d19EOnOYzong1XSpcUBFDdPu7wQ6Ra6ndtTM49ZMb3dl5N78bduxXtuw&_nc_zt=23&_nc_ht=scontent-waw2-1.xx&_nc_gid=BZumijFVDR00uMitIRFgmQ&oh=00_AfSRBe1k75gbydjm_47-BOsY_jqhDCJbwviGW3zJG5WngA&oe=68B144F1"
+      alt="Herb Świdniczanki"
+      style="width:44px;height:44px;border-radius:50%;object-fit:cover;">
+  </div>
+  <!-- Scoreboard TOP 3 -->
+  <div id="scoreboard" style="
+    position:fixed;
+    top:16px;
+    left:16px;
+    min-width:160px;
+    background:rgba(30,30,30,0.82);
+    color:#fff;
+    border-radius:14px;
+    box-shadow:0 2px 8px #0008;
+    padding:18px 18px 12px 18px;
+    z-index:10002;
+    font-size:1.08em;
+    ">
+    <div style="font-weight:bold;letter-spacing:1px;margin-bottom:8px;text-align:center;">🏆 TOP 3</div>
+    <ol id="scoreList" style="margin:0;padding-left:20px;">
+      <li>Ładowanie...</li>
+    </ol>
+  </div>
+  <div class="game-container">
+    <!-- Herb Świdniczanki w prawym górnym rogu -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Herb_%C5%9Awidniczanki_%C5%9Awidnik.png"
+         alt="Herb Świdniczanki" class="herb-img" style="display:none;">
+    <h2>Strzel gola! (kliknij w piłkę)</h2>
+    <canvas id="gameCanvas" width="320" height="400"></canvas>
+    <div class="score">Wynik: <span id="score">0</span> | Życia: <span id="lives">3</span></div>
+    <form class="save-form" id="saveForm" onsubmit="saveScore(event)" style="display:none;">
+      <input type="text" id="playerName" placeholder="Twoje imię lub nick" maxlength="32" required>
+      <button type="submit">Zapisz wynik</button>
+    </form>
+    <form id="mainForm" method="post" action="/parse" enctype="multipart/form-data" style="display:none"></form>
+    <div id="saveMsg" style="margin-top:10px;color:#90ee90;"></div>
+    <a class="back-link" href="{{ url_for('index') }}">&#8592; Powrót do formularza</a>
+  </div>
+  <script>
+    // Załaduj zdjęcie Szczęsnego z lokalnego pliku PNG (przez removebg)
+    const szczesnyImg = new Image();
+    szczesnyImg.src = "{{ url_for('static', filename='Wojciech_Szcz_sny-removebg-preview.png') }}";
+    szczesnyImg.onload = function() {
+      draw();
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let lives = 3;
+    let gameOver = false;
+
+    // Piłka
+    let ball = {
+      x: canvas.width / 2,
+      y: canvas.height - 40,
+      r: 22,
+      vy: 0,
+      flying: false
+    };
+
+    // Bramkarz - mniejszy, by łatwiej strzelić gola
+    let goalie = {
+      w: 38,
+      h: 44,
+      x: canvas.width / 2 - 19,
+      y: 60,
+      vx: 3
+    };
+
+    function drawGoal() {
+      ctx.save();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(40, 50);
+      ctx.lineTo(canvas.width - 40, 50);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawGoalie() {
+      // Rysuj twarz Szczęsnego jako bramkarza (mały rozmiar, okrągła maska)
+      if (szczesnyImg.complete && szczesnyImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(
+          goalie.x + goalie.w / 2,
+          goalie.y + goalie.h / 2,
+          goalie.w / 2,
+          0,
+          2 * Math.PI
+        );
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(szczesnyImg, goalie.x, goalie.y, goalie.w, goalie.h);
+        ctx.restore();
+      } else {
+        // Fallback: prostokąt
+        ctx.save();
+        ctx.fillStyle = "#1565c0";
+        ctx.fillRect(goalie.x, goalie.y, goalie.w, goalie.h);
+        ctx.restore();
+      }
+    }
+
+    function drawBall() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, 2 * Math.PI);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#222";
+      ctx.stroke();
+      // "Łaty"
+      ctx.beginPath();
+      ctx.arc(ball.x - 8, ball.y - 6, 5, 0, 2 * Math.PI);
+      ctx.arc(ball.x + 8, ball.y + 6, 4, 0, 2 * Math.PI);
+      ctx.arc(ball.x + 7, ball.y - 10, 3, 0, 2 * Math.PI);
+      ctx.arc(ball.x - 10, ball.y + 8, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = "#222";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGoal();
+      drawGoalie();
+      drawBall();
+    }
+
+    function resetBall() {
+      ball.x = Math.floor(Math.random() * (canvas.width - 80)) + 40;
+      ball.y = canvas.height - 40;
+      ball.vy = 0;
+      ball.flying = false;
+    }
+
+    function resetGoalie() {
+      goalie.x = canvas.width / 2 - goalie.w / 2;
+      goalie.vx = Math.random() > 0.5 ? 3 : -3;
+    }
+
+    function updateScoreAndLives() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('lives').textContent = lives;
+    }
+
+    function showSaveForm() {
+      document.getElementById('saveForm').style.display = '';
+      document.getElementById('playerName').focus();
+    }
+
+    function hideSaveForm() {
+      document.getElementById('saveForm').style.display = 'none';
+    }
+
+    function animate() {
+      if (gameOver) return;
+      // Bramkarz ruch
+      goalie.x += goalie.vx;
+      if (goalie.x < 40) {
+        goalie.x = 40;
+        goalie.vx *= -1;
+      }
+      if (goalie.x + goalie.w > canvas.width - 40) {
+        goalie.x = canvas.width - 40 - goalie.w;
+        goalie.vx *= -1;
+      }
+
+      // Piłka lot
+      if (ball.flying) {
+        ball.y -= 7;
+        if (ball.y - ball.r <= goalie.y + goalie.h && ball.y + ball.r > goalie.y) {
+          // Sprawdź kolizję X
+          if (ball.x + ball.r > goalie.x && ball.x - ball.r < goalie.x + goalie.w) {
+            // Odbite przez bramkarza - tracisz życie
+            ball.flying = false;
+            lives--;
+            updateScoreAndLives();
+            if (lives <= 0) {
+              gameOver = true;
+              setTimeout(() => {
+                showSaveForm();
+              }, 700);
+            } else {
+              setTimeout(() => {
+                resetBall();
+                resetGoalie();
+                draw();
+              }, 700);
+            }
+          }
+        }
+        // GOL!
+        if (ball.y - ball.r <= 50) {
+          // Sprawdź czy nie trafił w bramkarza
+          if (!(ball.x + ball.r > goalie.x && ball.x - ball.r < goalie.x + goalie.w && ball.y + ball.r > goalie.y)) {
+            score++;
+            updateScoreAndLives();
+          }
+          ball.flying = false;
+          setTimeout(() => {
+            resetBall();
+            resetGoalie();
+            draw();
+          }, 700);
+        }
+      }
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener('click', function(e) {
+      if (gameOver) return;
+      if (!ball.flying) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const dist = Math.sqrt((mx - ball.x) ** 2 + (my - ball.y) ** 2);
+        if (dist <= ball.r) {
+          ball.flying = true;
+        }
+      }
+    });
+
+    function startGame() {
+      score = 0;
+      lives = 3;
+      gameOver = false;
+      updateScoreAndLives();
+      hideSaveForm();
+      resetBall();
+      resetGoalie();
+      draw();
+      animate();
+    }
+
+    resetBall();
+    resetGoalie();
+    updateScoreAndLives();
+    draw();
+    animate();
+
+    // Pobierz top 3 wyniki z backendu
+    function loadScoreboard() {
+      fetch('{{ url_for("football_scoreboard") }}')
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('scoreList');
+          list.innerHTML = '';
+          if (data.length === 0) {
+            list.innerHTML = '<li>Brak wyników</li>';
+          } else {
+            data.forEach((item, idx) => {
+              list.innerHTML += `<li><b>${item.name}</b>: ${item.score}</li>`;
+            });
+          }
+        });
+    }
+    loadScoreboard();
+
+    // Po zapisaniu wyniku odśwież scoreboard
+    function saveScore(e) {
+      e.preventDefault();
+      const name = document.getElementById('playerName').value.trim();
+      fetch('{{ url_for("football_score") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('saveMsg').textContent = 'Wynik zapisany! Kliknij, by zagrać ponownie.';
+        loadScoreboard();
+        setTimeout(() => {
+          document.getElementById('saveMsg').textContent = '';
+          startGame();
+        }, 2000);
+      });
+    }
+
+    // Animacja startowa
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        const flash = document.getElementById('startup-flash');
+        if (flash) flash.style.display = 'none';
+      }, 1200);
+    });
+
+    // Animacja kropek
+    (function dotsAnim() {
+      const dots = document.getElementById('dotsAnim');
+      if (!dots) return;
+      let i = 0;
+      setInterval(() => {
+        dots.textContent = ". ".repeat((i++ % 3) + 1);
+      }, 350);
+    })();
+
+    // Pokazuj overlay ładowania przy submit
+    document.addEventListener('DOMContentLoaded', function() {
+      // Jeśli jest przycisk "Uzupełnij plik" na tej stronie
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          document.getElementById('loading-overlay').style.display = 'flex';
+        });
+      }
+      // Jeśli jest formularz gry (nie dotyczy tej strony, ale zostawiam dla uniwersalności)
+      const mainForm = document.getElementById('mainForm');
+      if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+          document.getElementById('loading-overlay').style.display = 'flex';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

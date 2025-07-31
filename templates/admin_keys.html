@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel edycji KEYS</title>
+  <style>
+    body {
+      background: #181818;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #232323;
+      border-radius: 14px;
+      box-shadow: 0 0 32px #000a;
+      padding: 32px 24px 24px 24px;
+    }
+    h2 {
+      color: #90caf9;
+      margin-top: 0;
+    }
+    .key-block {
+      margin-bottom: 28px;
+      background: #222;
+      border-radius: 8px;
+      padding: 18px 14px 14px 14px;
+      box-shadow: 0 1px 8px #0003;
+    }
+    .key-block label {
+      color: #b3e5fc;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .key-block textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: #191919;
+      color: #eee;
+      font-size: 1em;
+      margin-bottom: 8px;
+    }
+    .key-block .btn {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .btn {
+      padding: 9px 18px;
+      background-color: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      font-size: 1.04rem;
+      font-weight: 500;
+      box-shadow: 0 2px 8px #0004;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+    }
+    .btn:hover {
+      background-color: #1565c0;
+      box-shadow: 0 4px 16px #2196f366;
+    }
+    .logout-btn {
+      background: #ff9800;
+      color: #fff;
+      margin-top: 18px;
+    }
+    .logout-btn:hover {
+      background: #e65100;
+    }
+    .info {
+      color: #aaa;
+      font-size: 0.98em;
+      margin-bottom: 18px;
+    }
+    .error-msg {
+      color: #ff6666;
+      font-weight: bold;
+      margin-bottom: 18px;
+      font-size: 1.08em;
+      text-align: center;
+    }
+    .success-msg {
+      color: #90ee90;
+      font-weight: bold;
+      margin-bottom: 18px;
+      font-size: 1.08em;
+      text-align: center;
+    }
+    .back-link {
+      color: #90caf9;
+      text-decoration: none;
+      font-size: 1.1em;
+      margin-top: 18px;
+      display: inline-block;
+    }
+    .back-link:hover { text-decoration: underline; }
+    .keys-preview {
+      background: #181818;
+      color: #b3e5fc;
+      border-radius: 8px;
+      padding: 12px 10px;
+      margin-bottom: 24px;
+      font-size: 0.98em;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Panel edycji wszystkich KEYS</h2>
+    <div class="info">
+      Edytuj dowolną tablicę KEYS (każdy element oddziel przecinkiem).<br>
+      <b>Podgląd aktualnych wartości:</b>
+    </div>
+    <div id="keysPreview" class="keys-preview"></div>
+    <div id="keysEditor"></div>
+    <button onclick="logoutAdmin()" class="btn logout-btn">Wyloguj</button>
+    <a href="{{ url_for('index') }}" class="back-link">&#8592; Powrót do formularza</a>
+  </div>
+  <script>
+    // --- Logowanie ---
+    if (!sessionStorage.getItem('admin')) {
+      window.location.href = "{{ url_for('admin_login') }}";
+    }
+
+    // --- KEYS panel ---
+    function loadKeysEditor() {
+      fetch('/get_keys?all=1')
+        .then(res => res.json())
+        .then(data => {
+          // Podgląd wszystkich KEYS
+          let preview = '';
+          Object.entries(data).forEach(([key, arr]) => {
+            preview += key + ':<br>' + (arr.length ? arr.join(', ') : '<i>pusta</i>') + '<br><br>';
+          });
+          document.getElementById('keysPreview').innerHTML = preview;
+
+          // Edytor
+          let html = '';
+          Object.entries(data).forEach(([key, arr]) => {
+            html += `
+              <div class="key-block">
+                <label>${key}:</label>
+                <textarea id="edit_${key}">${arr.join(', ')}</textarea>
+                <button class="btn" onclick="saveKey('${key}')">Zapisz</button>
+              </div>
+            `;
+          });
+          document.getElementById('keysEditor').innerHTML = html;
+        });
+    }
+    function saveKey(key) {
+      const val = document.getElementById('edit_' + key).value;
+      fetch('/set_key', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({key, value: val})
+      }).then(res => res.json())
+        .then(data => {
+          if(data.status === 'ok') {
+            loadKeysEditor();
+            alert('Zapisano!');
+          } else {
+            alert('Błąd zapisu!');
+          }
+        });
+    }
+    function logoutAdmin() {
+      sessionStorage.removeItem('admin');
+      window.location.href = "{{ url_for('admin_login') }}";
+    }
+    loadKeysEditor();
+  </script>
+</body>
+</html>
