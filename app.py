@@ -22,7 +22,6 @@ def load_keys_from_file():
     if os.path.exists(KEYS_FILE):
         with open(KEYS_FILE, encoding='utf-8') as f:
             data = json.load(f)
-            # Wczytaj wszystkie KEYS_* jako globalne zmienne
             for k, v in data.items():
                 if k.startswith('KEYS_'):
                     globals()[k] = v
@@ -31,18 +30,15 @@ def load_keys_from_file():
 
 def save_keys_to_file():
     data = {}
-    # Zapisz tylko KEYS_* z globali
     for k, v in globals().items():
         if k.startswith('KEYS_'):
             data[k] = v
     with open(KEYS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# Załaduj KEYS przy starcie (i utwórz plik jeśli nie istnieje)
 load_keys_from_file()
 
 def get_keys_by_name(name):
-    # Zwraca tablicę KEYS_* z globali, zawsze listę
     return list(globals().get(name, []))
 
 def parse_data(text, keys):
@@ -171,7 +167,6 @@ def parse():
     no_file = request.form.get('noFile') == 'on'
 
     def pick_keys():
-        # Nazwy tablic KEYS_* zgodnie z logiką
         if operation_type == 'rejestracja':
             if people_count == '1':
                 if is_company and second_engine:
@@ -240,14 +235,12 @@ def parse():
     parsed_data = parse_data(raw_text, keys_filtered)
     parsed_data['todaydata'] = datetime.now().strftime("%Y-%m-%d")
 
-    # Nadpisz HINNumber na '-----' jeśli niepoprawny (ale nie dodawaj na końcu)
     for idx, key in enumerate(keys_filtered):
         if key.lower() == 'hinnumber':
             val = parsed_data.get('hinnumber', '')
             if not is_valid_hin(val):
                 parsed_data['hinnumber'] = '-----'
 
-    # Dodaj category na końcu jeśli nie ma w keys_filtered
     keys_lower = [k.lower() for k in keys_filtered]
     if 'category' not in keys_lower:
         parsed_data['category'] = '-----'
@@ -298,7 +291,6 @@ def football_score():
     data = request.json
     name = data.get('name', 'anonim')
     score = data.get('score', 0)
-    # Zapisz wynik do pliku tekstowego (prosty sposób)
     with open('football_scores.txt', 'a', encoding='utf-8') as f:
         f.write(f"{name}:{score}\n")
     return jsonify({'status': 'ok'})
@@ -310,7 +302,6 @@ def football_scoreboard():
         with open('football_scores.txt', encoding='utf-8') as f:
             for line in f:
                 if ':' in line:
-                    # Rozdziel po ostatnim dwukropku
                     parts = line.strip().rsplit(':', 1)
                     if len(parts) == 2:
                         name, score = parts
@@ -318,7 +309,6 @@ def football_scoreboard():
                             scores.append({'name': name, 'score': int(score)})
                         except ValueError:
                             continue
-        # Sortuj malejąco po wyniku, top 3
         scores = sorted(scores, key=lambda x: x['score'], reverse=True)[:3]
     except Exception:
         scores = []
@@ -330,12 +320,11 @@ def last_update():
         filepath = os.path.join(os.path.dirname(__file__), 'app.py')
         mtime = os.path.getmtime(filepath)
         dt = datetime.fromtimestamp(mtime)
-        # Format: YYYY-MM-DD HH:MM:SS
         return jsonify({'last_update': dt.strftime('%Y-%m-%d %H:%M:%S')})
     except Exception:
         return jsonify({'last_update': 'brak danych'})
 
-# --- Panel admina: edycja KEYS ---
+
 
 KEYS_FILE = os.path.join(os.path.dirname(__file__), 'keys_data.json')
 
@@ -347,7 +336,7 @@ def load_keys_from_file():
                 if k.startswith('KEYS_'):
                     globals()[k] = v
     else:
-        # Jeśli plik nie istnieje, utwórz go z aktualnymi KEYS_* z kodu
+        
         save_keys_to_file()
 
 def save_keys_to_file():
@@ -358,7 +347,7 @@ def save_keys_to_file():
     with open(KEYS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# Załaduj KEYS przy starcie (i utwórz plik jeśli nie istnieje)
+
 load_keys_from_file()
 
 @app.route('/admin')
@@ -374,16 +363,16 @@ def get_keys():
     all_keys = request.args.get('all')
     result = {}
     if all_keys:
-        # Zwróć wszystkie KEYS_* z globali jako listy (nie numpy arrays, nie None)
+        
         for k, v in globals().items():
             if k.startswith('KEYS_'):
-                # Upewnij się, że to lista (może być tuple po *KEYS_ZMIANA_3_FIRMA, ...)
+                
                 if isinstance(v, (list, tuple)):
                     result[k] = list(v)
                 else:
                     result[k] = []
         return jsonify(result)
-    # Domyślnie tylko wybrane (do zachowania kompatybilności)
+    
     for name in [
         "KEYS_REJ_2_FIRMA",
         "KEYS_REJ_2_FIRMA_2ENG",
